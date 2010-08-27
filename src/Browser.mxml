@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+	     xmlns:s="library://ns.adobe.com/flex/spark" 
+	     xmlns:mx="library://ns.adobe.com/flex/mx"
+		 creationComplete="onCreationComplete();">
+	<fx:Script>
+		<![CDATA[
+			
+			private var removeBookmarkletButtons:Boolean = false;
+			
+			private function onCreationComplete():void
+			{
+				var host:CustomHost = new CustomHost();
+				this.html.htmlHost = host;
+				URLRequestDefaults.userAgent = "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_4; en-us) AppleWebKit/533.17.8 (KHTML, like Gecko) Version/5.0.1 Safari/533.17.8";
+				if (this.removeBookmarkletButtons)
+				{
+					this.locationBarGroup.removeElement(this.readabilityButton);
+					this.locationBarGroup.removeElement(this.moreButton);
+					this.locationBarGroup.removeElement(this.vRule);
+				}
+			}
+			
+			private function loadUrl():void
+			{
+				this.moreButton.enabled = false;
+				this.readabilityButton.enabled = false;
+				if (locationBar.text.length == 0) return;
+				if (locationBar.text.search(/^http(s?):\/\/.+$/) == -1)
+				{
+					locationBar.text = ("http://" + locationBar.text);
+				}
+				html.location = locationBar.text;
+			}
+			
+			private function onHtmlLoadComplete(e:Event):void
+			{
+				this.dispatchEvent(new Event(Event.COMPLETE));
+				backButton.enabled = (html.htmlLoader.historyLength > 0 && html.htmlLoader.historyPosition > 0) ? true : false ;
+				forwardButton.enabled = (html.htmlLoader.historyLength > 0 && html.htmlLoader.historyPosition != (html.htmlLoader.historyLength - 1)) ? true : false ;
+				this.moreButton.enabled = true;
+				this.readabilityButton.enabled = true;
+			}
+
+			private function onMore():void
+			{
+				var document:Object = this.html.htmlLoader.window.document;
+				
+				// The bookmark bar
+				var bookmarkletBar:Object = document.createElement("p");
+				bookmarkletBar.id = "bookmarkletBar";  
+				bookmarkletBar.style.position = "absolute";
+				bookmarkletBar.style.visibility = "visible";
+				bookmarkletBar.style.zIndex = Math.pow(2, 31);
+				bookmarkletBar.style.right = "10px";
+				bookmarkletBar.style.top = "0px";
+				bookmarkletBar.style.padding = "4px";
+				bookmarkletBar.style.boxShadow = "10px 10px 5px #888";
+				bookmarkletBar.style.backgroundColor = "#ffffff";
+				bookmarkletBar.style.border = "2px solid #ccc";
+				
+				// Readability
+				var readability:Object = document.createElement("a");
+				var href:Object = document.createAttribute("href");
+				href.nodeValue = "javascript:(function(){readConvertLinksToFootnotes=true;readStyle='style-newspaper';readSize='size-medium';readMargin='margin-medium';_readability_script=document.createElement('script');_readability_script.type='text/javascript';_readability_script.src='http://lab.arc90.com/experiments/readability/js/readability.js?x='+(Math.random());document.documentElement.appendChild(_readability_script);_readability_css=document.createElement('link');_readability_css.rel='stylesheet';_readability_css.href='http://lab.arc90.com/experiments/readability/css/readability.css';_readability_css.type='text/css';_readability_css.media='all';document.documentElement.appendChild(_readability_css);_readability_print_css=document.createElement('link');_readability_print_css.rel='stylesheet';_readability_print_css.href='http://lab.arc90.com/experiments/readability/css/readability-print.css';_readability_print_css.media='print';_readability_print_css.type='text/css';document.getElementsByTagName('head')[0].appendChild(_readability_print_css);})();";
+				readability.setAttributeNode(href);
+				readability.appendChild(document.createTextNode("Readability"));
+				bookmarkletBar.appendChild(readability);  
+				
+				bookmarkletBar.appendChild(document.createTextNode(" | "));
+				
+				// Twitter 
+				var twitter:Object = document.createElement("a");
+				href = document.createAttribute("href");
+				href.nodeValue = "javascript:(function(){window.twttr=window.twttr||{};var D=550,A=450,C=screen.height,B=screen.width,H=Math.round((B/2)-(D/2)),G=0,F=document,E;if(C>A){G=Math.round((C/2)-(A/2))}window.twttr.shareWin=window.open('http://twitter.com/share','','left='+H+',top='+G+',width='+D+',height='+A+',personalbar=0,toolbar=0,scrollbars=1,resizable=1');E=F.createElement('script');E.src='http://platform.twitter.com/bookmarklets/share.js?v=1';F.getElementsByTagName('head')[0].appendChild(E)}());";
+				twitter.setAttributeNode(href);
+				twitter.appendChild(document.createTextNode("Twitter"));
+				bookmarkletBar.appendChild(twitter);  
+				
+				bookmarkletBar.appendChild(document.createTextNode(" | "));
+				
+				// Delicious 
+				var delicious:Object = document.createElement("a");
+				href = document.createAttribute("href");
+				href.nodeValue = "javascript:(function()%7Bf='http://delicious.com/save?url='+encodeURIComponent(window.location.href)+'&title='+encodeURIComponent(document.title)+'&v=5&';a=function()%7Bif(!window.open(f+'noui=1&jump=doclose','deliciousuiv5','location=yes,links=no,scrollbars=no,toolbar=no,width=550,height=550'))location.href=f+'jump=yes'%7D;if(/Firefox/.test(navigator.userAgent))%7BsetTimeout(a,0)%7Delse%7Ba()%7D%7D)()";
+				delicious.setAttributeNode(href);
+				delicious.appendChild(document.createTextNode("Tag with Delicious"));
+				bookmarkletBar.appendChild(delicious);  
+				
+				var body:Object = document.getElementsByTagName("body")[0];  
+				body.appendChild(bookmarkletBar); 
+			}
+			
+			private function onReadability():void
+			{
+				this.html.htmlLoader.window.eval("(function(){readConvertLinksToFootnotes=true;readStyle='style-newspaper';readSize='size-medium';readMargin='margin-medium';_readability_script=document.createElement('script');_readability_script.type='text/javascript';_readability_script.src='http://lab.arc90.com/experiments/readability/js/readability.js?x='+(Math.random());document.documentElement.appendChild(_readability_script);_readability_css=document.createElement('link');_readability_css.rel='stylesheet';_readability_css.href='http://lab.arc90.com/experiments/readability/css/readability.css';_readability_css.type='text/css';_readability_css.media='all';document.documentElement.appendChild(_readability_css);_readability_print_css=document.createElement('link');_readability_print_css.rel='stylesheet';_readability_print_css.href='http://lab.arc90.com/experiments/readability/css/readability-print.css';_readability_print_css.media='print';_readability_print_css.type='text/css';document.getElementsByTagName('head')[0].appendChild(_readability_print_css);})();");
+			}
+			
+			public function hideBookmarklets():void
+			{
+				this.removeBookmarkletButtons = true;
+			}
+			
+		]]>
+	</fx:Script>
+	<s:VGroup id="manGroup" width="100%" height="100%" paddingBottom="0" paddingTop="0">
+		<s:HGroup id="locationBarGroup" width="100%" height="28" gap="4" paddingLeft="4" paddingRight="4" paddingTop="5">
+			<s:Button label="Back" click="html.htmlLoader.historyBack()" enabled="false" id="backButton"/>
+			<s:Button label="Forward" click="html.htmlLoader.historyForward()" enabled="false" id="forwardButton"/>
+			<s:TextInput width="100%" id="locationBar" text="{html.location}" enter="loadUrl();"/>
+			<s:Button label="Load" click="loadUrl();" enabled="{locationBar.text.length &gt; 0}"/>
+			<mx:VRule id="vRule" height="100%"/>
+			<s:Button id="readabilityButton" label="Readability" enabled="false" click="onReadability();"/>
+			<s:Button id="moreButton" label="More Bookmarklets" enabled="false" click="onMore();"/>
+		</s:HGroup>
+		<mx:HTML width="100%" height="100%" id="html" complete="onHtmlLoadComplete(event)"/>
+	</s:VGroup>
+</s:Group>
